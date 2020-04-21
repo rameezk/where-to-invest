@@ -8,7 +8,13 @@ def main():
     x = input("Press [q] to quit, any key to continue: ")
     while x != "q":
         simulator.run_one_month()
-        print(simulator.get_summary())
+        summary = simulator.get_summary()
+
+        print("=======================================")
+        print(f"year = {summary.get('year_count')}")
+        print(f"month = {summary.get('month_count')}")
+        print(f"total_portfolio = {summary.get('total_portfolio'):.2f}")
+
         x = input("Press [q] to quit, any key to continue: ")
 
 
