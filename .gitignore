@@ -1,5 +1,7 @@
 *conf.py
 
+.idea/
+
 
 # Created by https://www.gitignore.io/api/python,jetbrains,vim,emacs
 # Edit at https://www.gitignore.io/?templates=python,jetbrains,vim,emacs
