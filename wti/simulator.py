@@ -56,6 +56,7 @@ class Simulator:
         if self._month_count == 12 + 1:
             self._year_count += 1
             self._month_count = 1
+            self._age += 1
             self._tfsa.reset_tax_year()
             self._escalate_monthly_investment_amount()
 
@@ -64,6 +65,21 @@ class Simulator:
         )
         self._invest_monthly()
         self._grow_monthly()
+
+    def run_until_portfolio_is(self, amount: float):
+        while self._total_portfolio < amount:
+            self.run_one_month()
+
+        return {
+            "year": self._year_count,
+            "month": self._month_count,
+            "age": self._age,
+            "porfolio": {
+                "total": self._total_portfolio,
+                "tfsa": self._tfsa.total,
+                "offshore": self._discretionary.total,
+            },
+        }
 
     def get_summary(self) -> dict:
         year_delta = self._year + self._year_count

@@ -7,7 +7,7 @@ logging.basicConfig(level=conf.log_level)
 _log = logging.getLogger(__name__)
 
 
-def main():
+def interative():
     simulator = Simulator(conf.age, conf.monthly_amount_to_invest)
 
     x = input("Press [q] to quit, any key to continue: ")
@@ -27,5 +27,13 @@ def main():
         x = input("Press [q] to quit, any key to continue: ")
 
 
+def when_will_portfolio_be():
+    simulator = Simulator(conf.age, conf.monthly_amount_to_invest)
+    x = input("Enter amount to continue: ")
+    when = simulator.run_until_portfolio_is(float(x))
+    print(when)
+
+
 if __name__ == "__main__":
-    main()
+    # interative()
+    when_will_portfolio_be()
