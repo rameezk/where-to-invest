@@ -18,6 +18,10 @@ def main():
         print("=======================================")
         print(f"year = {summary.get('year_count')}")
         print(f"month = {summary.get('month_count')}")
+        tfsa_balance = simulator.portfolio.get("tfsa").get("balance")
+        offshore_balance = simulator.portfolio.get("offshore").get("balance")
+        print(f"tfsa = {tfsa_balance:.2f}")
+        print(f"offshore = {offshore_balance:.2f}")
         print(f"total_portfolio = {summary.get('total_portfolio'):.2f}")
 
         x = input("Press [q] to quit, any key to continue: ")

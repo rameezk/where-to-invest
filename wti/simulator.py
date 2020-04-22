@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 
 from wti.tfsa import TFSA
+from wti.discretionary import Discretionary
 import wti.conf as conf
 
 _log = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ class Simulator:
     _total_portfolio: float
 
     _tfsa: TFSA
+    _discretionary: Discretionary
 
     def __init__(self, age: int, monthly_investment_amount: float, year=None):
         if year is None:
@@ -37,6 +39,7 @@ class Simulator:
             yearly_contributions=conf.tfsa_yearly_contributions,
             lifetime_contributions=conf.tfsa_lifetime_contributions,
         )
+        self._discretionary = Discretionary("offshore")
 
     def run_one_year(self):
         self.run_months(months=12)
@@ -87,6 +90,7 @@ class Simulator:
             _log.debug(
                 f"Funds remaining = {remaining_amount_to_invest:.2f}. Will need to allocate to another vehicle."
             )
+            self._discretionary.invest(remaining_amount_to_invest)
 
         self._total_portfolio = self._get_total_portfolio_across_all_vehicles()
 
@@ -95,4 +99,11 @@ class Simulator:
         self._total_portfolio = self._get_total_portfolio_across_all_vehicles()
 
     def _get_total_portfolio_across_all_vehicles(self):
-        return self._tfsa.total
+        return self._tfsa.total + self._discretionary.total
+
+    @property
+    def portfolio(self) -> dict:
+        return {
+            "tfsa": {"balance": self._tfsa.total},
+            "offshore": {"balance": self._discretionary.total},
+        }
