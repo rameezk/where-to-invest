@@ -39,7 +39,9 @@ class Simulator:
             yearly_contributions=conf.tfsa_yearly_contributions,
             lifetime_contributions=conf.tfsa_lifetime_contributions,
         )
-        self._discretionary = Discretionary("offshore")
+        self._discretionary = Discretionary(
+            "offshore", yearly_growth=conf.discretionary_growth
+        )
 
     def run_one_year(self):
         self.run_months(months=12)
@@ -55,6 +57,7 @@ class Simulator:
             self._year_count += 1
             self._month_count = 1
             self._tfsa.reset_tax_year()
+            self._escalate_monthly_investment_amount()
 
         _log.debug(
             f"Running simulation for year = {self._year_count} month = {self._month_count}"
@@ -77,6 +80,14 @@ class Simulator:
     def get_total_portfolio(self):
         return self._total_portfolio
 
+    def _escalate_monthly_investment_amount(self):
+        self._monthly_investment_amount = self._monthly_investment_amount * (
+            1 + conf.yearly_investment_amount_escalation
+        )
+        _log.debug(
+            f"Monthly investment amount has been increased to {self._monthly_investment_amount:.2f}"
+        )
+
     def _invest_monthly(self):
         amount_can_invest = self._tfsa.how_much_can_invest(
             self._monthly_investment_amount
@@ -96,6 +107,7 @@ class Simulator:
 
     def _grow_monthly(self):
         self._tfsa.grow()
+        self._discretionary.grow()
         self._total_portfolio = self._get_total_portfolio_across_all_vehicles()
 
     def _get_total_portfolio_across_all_vehicles(self):
