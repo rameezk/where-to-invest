@@ -1,5 +1,10 @@
 from wti.simulator import Simulator
 import wti.conf as conf
+import logging
+
+logging.basicConfig(level=conf.log_level)
+
+_log = logging.getLogger(__name__)
 
 
 def main():

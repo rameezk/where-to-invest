@@ -1,6 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+import logging
 
 from wti.tfsa import TFSA
+import wti.conf as conf
+
+_log = logging.getLogger(__name__)
 
 
 class Simulator:
@@ -27,7 +31,12 @@ class Simulator:
         self._month_count = 0
         self._total_portfolio = 0.00
 
-        self._tfsa = TFSA()
+        self._tfsa = TFSA(
+            starting_balance=conf.tfsa_starting_balance,
+            yearly_growth=conf.tfsa_growth,
+            yearly_contributions=conf.tfsa_yearly_contributions,
+            lifetime_contributions=conf.tfsa_lifetime_contributions,
+        )
 
     def run_one_year(self):
         self.run_months(months=12)
@@ -44,6 +53,9 @@ class Simulator:
             self._month_count = 1
             self._tfsa.reset_tax_year()
 
+        _log.debug(
+            f"Running simulation for year = {self._year_count} month = {self._month_count}"
+        )
         self._invest_monthly()
         self._grow_monthly()
 
@@ -63,13 +75,24 @@ class Simulator:
         return self._total_portfolio
 
     def _invest_monthly(self):
-        if self._tfsa.can_invest(self._monthly_investment_amount):
-            self._tfsa.invest(self._monthly_investment_amount)
-        self._total_portfolio = self._get_total_portfolio_accross_all_vehicles()
+        amount_can_invest = self._tfsa.how_much_can_invest(
+            self._monthly_investment_amount
+        )
+        _log.debug(f"Can invest {amount_can_invest:.2f} into TFSA this month")
+        if amount_can_invest > 0.00:
+            self._tfsa.invest(amount_can_invest)
+
+        remaining_amount_to_invest = self._monthly_investment_amount - amount_can_invest
+        if remaining_amount_to_invest > 0.00:
+            _log.debug(
+                f"Funds remaining = {remaining_amount_to_invest:.2f}. Will need to allocate to another vehicle."
+            )
+
+        self._total_portfolio = self._get_total_portfolio_across_all_vehicles()
 
     def _grow_monthly(self):
         self._tfsa.grow()
-        self._total_portfolio = self._get_total_portfolio_accross_all_vehicles()
+        self._total_portfolio = self._get_total_portfolio_across_all_vehicles()
 
-    def _get_total_portfolio_accross_all_vehicles(self):
+    def _get_total_portfolio_across_all_vehicles(self):
         return self._tfsa.total
