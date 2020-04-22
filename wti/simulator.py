@@ -40,7 +40,9 @@ class Simulator:
             lifetime_contributions=conf.tfsa_lifetime_contributions,
         )
         self._discretionary = Discretionary(
-            "offshore", yearly_growth=conf.discretionary_growth
+            "offshore",
+            yearly_growth=conf.discretionary_growth,
+            starting_balance=conf.discretionary_starting_balance,
         )
 
     def run_one_year(self):
@@ -67,9 +69,29 @@ class Simulator:
         self._grow_monthly()
 
     def run_until_portfolio_is(self, amount: float):
+        fu_fi = False
+        half_fi = False
+        lean_fi = False
         while self._total_portfolio < amount:
-            self.run_one_month()
+            self.run_one_year()
 
+            if self._total_portfolio > amount * 0.1 and not fu_fi:
+                print(f"Woah! You've reached FU-FI level at age {self._age}")
+                fu_fi = True
+
+            if self._total_portfolio > amount * 0.5 and not half_fi:
+                print(f"Woah! You've reached Half-FI level at age {self._age}")
+                half_fi = True
+
+            if self._total_portfolio > amount * 0.7 and not lean_fi:
+                print(f"Woah! You've reached Lean-FI level at age {self._age}")
+                lean_fi = True
+
+            amount = amount * (1 + conf.inflation)
+            _log.debug(f"Portfolio is currently {self._total_portfolio:.2f}")
+            _log.debug(f"Target amount has been inflated to {amount:.2f}")
+
+        print(f"Woah! You've reached Full-FI level at age {self._age}")
         return {
             "year": self._year_count,
             "month": self._month_count,
@@ -80,6 +102,9 @@ class Simulator:
                 "offshore": self._discretionary.total,
             },
         }
+
+    def run_to_retire_at_age(self, age: int):
+        pass
 
     def get_summary(self) -> dict:
         year_delta = self._year + self._year_count
